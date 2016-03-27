@@ -1,6 +1,5 @@
 package view;
 
-import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
@@ -13,9 +12,9 @@ import javax.swing.LookAndFeel;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
-
-import com.sun.org.apache.bcel.internal.classfile.LineNumber;
 
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
@@ -30,8 +29,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
+import javax.swing.JSpinner;
 
-public class MainGUI extends JFrame implements ActionListener, ItemListener
+public class MainGUI extends JFrame implements ActionListener, ChangeListener, ItemListener
 {
 	private Controller controller;
 	
@@ -42,9 +42,10 @@ public class MainGUI extends JFrame implements ActionListener, ItemListener
 	                  ckboxLineNumber, ckboxALTenure, ckboxOtherALTenure, chckbxFarmArea, ckboxLandOwned, ckboxCropIndustry, ckboxCropInCash,
 	                  ckboxCropInKind, ckboxYearsInCI, ckboxHarvestAmount, ckboxHDReason, ckboxOtherHDReason, ckboxCropChange, ckboxCCReason, 
 	                  ckboxOtherCCReason;
-	private JLabel labelRD, labelFactTable, labelCrop, labelLandParcel, lblHousehold, labelSD, labelRowsReturned;
+	private JLabel labelRD, labelColumnWidth, labelFactTable, labelCrop, labelLandParcel, lblHousehold, labelSD, labelRowsReturned;
 	private JPanel jpanel;
 	private JScrollPane tableScrollPane;
+	private JSpinner spinnerColumnWidth;
 	private JTable table;
 	
 	private ArrayList<String> ruddAttributes;
@@ -91,6 +92,17 @@ public class MainGUI extends JFrame implements ActionListener, ItemListener
 		labelRD.setFont(new Font("Segoe UI", Font.BOLD, 15));
 		labelRD.setBounds(10, 12, 170, 23);
 		jpanel.add(labelRD);
+		
+		labelColumnWidth = new JLabel("Set Column Width");
+		labelColumnWidth.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelColumnWidth.setBounds(220, 16, 109, 14);
+		jpanel.add(labelColumnWidth);
+		
+		spinnerColumnWidth = new JSpinner();
+		spinnerColumnWidth.setBounds(330, 12, 60, 25);
+		spinnerColumnWidth.setValue(172);
+		spinnerColumnWidth.addChangeListener(this);
+		jpanel.add(spinnerColumnWidth);
 		
 		labelFactTable = new JLabel("Fact Table");
 		labelFactTable.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -275,14 +287,14 @@ public class MainGUI extends JFrame implements ActionListener, ItemListener
 		jpanel.add(labelSD);
 		
 		buttonExecute = new JButton("Execute");
-		buttonExecute.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		buttonExecute.setBounds(10, 637, 89, 23);
+		buttonExecute.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		buttonExecute.setBounds(10, 635, 89, 25);
 		buttonExecute.addActionListener(this);
 		jpanel.add(buttonExecute);
 		
 		labelRowsReturned = new JLabel("Rows returned: ");
-		labelRowsReturned.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		labelRowsReturned.setBounds(109, 641, 231, 14);
+		labelRowsReturned.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		labelRowsReturned.setBounds(109, 637, 231, 18);
 		jpanel.add(labelRowsReturned);
 		
 		defaultTableModel = new DefaultTableModel();
@@ -357,13 +369,13 @@ public class MainGUI extends JFrame implements ActionListener, ItemListener
 		defaultTableModel = new DefaultTableModel(arraylistToObjectArray(rows), columns);
 		table.setModel(defaultTableModel);
 		
-		if( colCount <= 10 )
+		if( colCount <= 5 )
 		{
 			table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 		}
 		else
 		{
-			table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+			updateTableColumnWidth();
 		}
 		
 		labelRowsReturned.setText("Rows returned: " + rows.size());
@@ -395,6 +407,26 @@ public class MainGUI extends JFrame implements ActionListener, ItemListener
 		}
 	}
 
+	@Override
+	public void stateChanged(ChangeEvent e)
+	{
+		// TODO Auto-generated method stub
+		updateTableColumnWidth();
+	}
+	
+	private void updateTableColumnWidth()
+	{
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		
+		int width = (int) spinnerColumnWidth.getValue();
+		
+		for( int i = 0; i < table.getColumnModel().getColumnCount(); i++ )
+		{	
+			table.getColumnModel().getColumn(i).setMinWidth(width);
+			table.getColumnModel().getColumn(i).setMaxWidth(width);
+		}
+	}
+	
 	@Override
 	public void itemStateChanged(ItemEvent e)
 	{
