@@ -6,16 +6,16 @@ public class QueryBuilder
 {
 	private String measure = " AVG(f.cropvol_per_land) ";
 	
-	public String buildQuery( ArrayList<String> attributes, ArrayList<String> tables )
+	public String buildQuery( ArrayList<String> ruddAttributes, ArrayList<String> sdAttributes, ArrayList<String> tables )
 	{
-		String queryAttributes = buildSelectGroupBy(attributes);
+		String queryAttributes = buildSelectGroupBy(ruddAttributes);
 		String select = "SELECT ";
-		String fromwhere = buildFromWhere(tables);
+		String fromwhere = buildFromWhere(sdAttributes, tables);
 		String groupby = "";
 		
 		// if there are selected attributes, add them to select and groupby
 		// add measure to select
-		if( attributes.size() != 0 )
+		if( ruddAttributes.size() != 0 )
 		{
 			select += queryAttributes + ", " + measure;
 			groupby = "GROUP BY " + queryAttributes;
@@ -25,7 +25,7 @@ public class QueryBuilder
 			select += measure;
 		}
 		
-		return select + fromwhere + groupby;
+		return select + fromwhere + groupby + ";";
 	}
 	
 	// appends all attributes separated by a comma
@@ -49,7 +49,7 @@ public class QueryBuilder
 	}
 	
 	// builds from and where clause depending on the tables needed (based on the user's column selection)
-	private String buildFromWhere( ArrayList<String> tables )
+	private String buildFromWhere( ArrayList<String> sdAttributes, ArrayList<String> tables )
 	{
 		String from = "FROM facttable f ";
 		String where = "";
@@ -65,12 +65,28 @@ public class QueryBuilder
 			if( i + 1 != tables.size() )
 			{
 				from += tables.get(i) + ", ";
-				where += buildWhere(tables.get(i)) + "AND ";
+				where += buildWhereKeyJoin(tables.get(i)) + "AND ";
 			}
 			else
 			{
 				from += tables.get(i);
-				where += buildWhere(tables.get(i));
+				where += buildWhereKeyJoin(tables.get(i));
+			}
+		}
+		
+		for( int i = 0; i < sdAttributes.size(); i++ )
+		{
+			if( i == 0 && tables.size() != 0 )
+			{
+				where += "AND " + sdAttributes.get(i) + " ";
+			}
+			else if( i == 0 && tables.size() == 0 )
+			{
+				where += sdAttributes.get(i) + " ";
+			}
+			else
+			{
+				where += "AND " + sdAttributes.get(i) + " ";
 			}
 		}
 		
@@ -78,7 +94,7 @@ public class QueryBuilder
 	}
 	
 	// add primary key joins
-	private String buildWhere( String table )
+	private String buildWhereKeyJoin( String table )
 	{
 		if( table.charAt(table.length()-1) == 'c' )
 		{

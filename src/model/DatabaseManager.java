@@ -3,6 +3,9 @@ package model;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import com.mysql.fabric.xmlrpc.base.Array;
+
 import java.sql.PreparedStatement;
 
 public class DatabaseManager
@@ -10,6 +13,7 @@ public class DatabaseManager
 	private static DatabaseManager databaseManager = new DatabaseManager();
 	private DatabaseConnector connection;
 	private QueryBuilder queryBuilder;
+	private double queryTime;
 	
 	private DatabaseManager()
 	{
@@ -31,7 +35,12 @@ public class DatabaseManager
 		try
 		{
 			ps = connection.getConnection().prepareStatement(sql);
+			
+			double start = System.currentTimeMillis();
 			ResultSet rs = ps.executeQuery();
+			double end = System.currentTimeMillis();
+			
+			queryTime = end - start;
 			
 			return rs;
 		}
@@ -52,7 +61,12 @@ public class DatabaseManager
 		try
 		{
 			ps = connection.getConnection().prepareStatement(sql);
+
+			double start = System.currentTimeMillis();
 			ResultSet rs = ps.executeQuery();
+			double end = System.currentTimeMillis();
+			
+			queryTime = end - start;
 			
 			return rs;
 		}
@@ -73,7 +87,12 @@ public class DatabaseManager
 		try
 		{
 			ps = connection.getConnection().prepareStatement(sql);
+
+			double start = System.currentTimeMillis();
 			ResultSet rs = ps.executeQuery();
+			double end = System.currentTimeMillis();
+			
+			queryTime = end - start;
 			
 			return rs;
 		}
@@ -94,7 +113,12 @@ public class DatabaseManager
 		try
 		{
 			ps = connection.getConnection().prepareStatement(sql);
+
+			double start = System.currentTimeMillis();
 			ResultSet rs = ps.executeQuery();
+			double end = System.currentTimeMillis();
+			
+			queryTime = end - start;
 			
 			return rs;
 		}
@@ -107,19 +131,51 @@ public class DatabaseManager
 		return null;
 	}
 	
-	public ResultSet getData( ArrayList<String> attributes, ArrayList<String> tables )
+	public ResultSet getData( ArrayList<String> ruddAttributes, ArrayList<String> sdAttributes, ArrayList<String> tables )
 	{
 		PreparedStatement ps;
-		String sql = queryBuilder.buildQuery(attributes, tables);
+		String sql = queryBuilder.buildQuery(ruddAttributes, sdAttributes, tables);
 		
 		System.out.println(sql);
 		
 		try
 		{
 			ps = connection.getConnection().prepareStatement(sql);
+
+			double start = System.currentTimeMillis();
 			ResultSet rs = ps.executeQuery();
+			double end = System.currentTimeMillis();
+			
+			queryTime = end - start;
 			
 			return rs;
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block3w
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public String[] getCropTypes()
+	{
+		ArrayList<String> cropTypeList = new ArrayList<String>(0);
+		PreparedStatement ps;
+		String sql = "SELECT DISTINCT croptype FROM dim_crop ORDER BY croptype;";
+		
+		cropTypeList.add("");
+		
+		try
+		{
+			ps = connection.getConnection().prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next())
+			{
+				cropTypeList.add(rs.getString(1));
+			}
 		}
 		catch (SQLException e)
 		{
@@ -127,7 +183,62 @@ public class DatabaseManager
 			e.printStackTrace();
 		}
 		
-		return null;
+		return cropTypeList.toArray(new String[0]);
+	}
+	
+	public String[] getHarvestDecreaseReason()
+	{
+		ArrayList<String> harvestDecreaseReason = new ArrayList<String>(0);
+		PreparedStatement ps;
+		String sql = "SELECT DISTINCT u_low_harv FROM dim_household ORDER BY u_low_harv;";
+		
+		try
+		{
+			ps = connection.getConnection().prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next())
+			{
+				harvestDecreaseReason.add(rs.getString(1));
+			}
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return harvestDecreaseReason.toArray(new String[0]);
+	}
+	
+	public String[] getCropChangeReason()
+	{
+		ArrayList<String> cropChangeReason = new ArrayList<String>(0);
+		PreparedStatement ps;
+		String sql = "SELECT DISTINCT u_chng_pcrop_y FROM dim_household ORDER BY u_chng_pcrop_y;";
+		
+		try
+		{
+			ps = connection.getConnection().prepareStatement(sql);
+			ResultSet rs = ps.executeQuery();
+			
+			while(rs.next())
+			{
+				cropChangeReason.add(rs.getString(1));
+			}
+		}
+		catch (SQLException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return cropChangeReason.toArray(new String[0]);
+	}
+	
+	public double getQueryTime()
+	{
+		return queryTime;
 	}
 	
 //	public ArrayList<Preference> getAllPreferences()

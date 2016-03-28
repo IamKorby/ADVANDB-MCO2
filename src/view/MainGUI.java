@@ -17,6 +17,8 @@ import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 
 import javax.swing.AbstractButton;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import java.awt.Font;
@@ -24,17 +26,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import javax.swing.JCheckBox;
 import javax.swing.JSpinner;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 
 public class MainGUI extends JFrame implements ActionListener, ChangeListener, ItemListener
 {
 	private Controller controller;
 	
+	private DefaultComboBoxModel<String> dcbmCropType, dcbmCropIndustry, dcbmHDReason, dcbmCropChange, dcbmCCReason;
 	private DefaultTableModel defaultTableModel;
 	
 	private JButton buttonExecute;
@@ -42,13 +49,16 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 	                  ckboxLineNumber, ckboxALTenure, ckboxOtherALTenure, chckbxFarmArea, ckboxLandOwned, ckboxCropIndustry, ckboxCropInCash,
 	                  ckboxCropInKind, ckboxYearsInCI, ckboxHarvestAmount, ckboxHDReason, ckboxOtherHDReason, ckboxCropChange, ckboxCCReason, 
 	                  ckboxOtherCCReason;
-	private JLabel labelRD, labelColumnWidth, labelFactTable, labelCrop, labelLandParcel, lblHousehold, labelSD, labelRowsReturned;
+	private JComboBox<String> cmboxCropType, cmboxCropIndustry, cmboxHDReason, cmboxCropChange, cmboxCCReason;
+	private JLabel labelRD, labelColumnWidth, labelFactTable, labelCrop, labelLandParcel, labelHousehold, labelSD, labelCrop2, labelCropType, 
+	               labelHousehold2, lblCropIndustry, labelHDReason, labelCropChange, labelCCReason, labelRowsReturned, labelQueryRuntime;
 	private JPanel jpanel;
 	private JScrollPane tableScrollPane;
 	private JSpinner spinnerColumnWidth;
 	private JTable table;
 	
 	private ArrayList<String> ruddAttributes;
+	private ArrayList<String> sdAttributes;
 	private ArrayList<String> tables;
 	
 	private int crop = 0, household = 0, landparcel = 0;
@@ -78,6 +88,7 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		this.controller = controller;
 		
 		ruddAttributes = new ArrayList<String>(0);
+		sdAttributes = new ArrayList<>(0);
 		tables = new ArrayList<String>(0);
 		
 		ruddAttributes.add("f.pkID_hh");
@@ -105,7 +116,7 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		jpanel.add(spinnerColumnWidth);
 		
 		labelFactTable = new JLabel("Fact Table");
-		labelFactTable.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelFactTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		labelFactTable.setBounds(10, 46, 65, 14);
 		jpanel.add(labelFactTable);
 		
@@ -134,7 +145,7 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		jpanel.add(ckboxLandParcelId);
 		
 		labelCrop = new JLabel("Crop");
-		labelCrop.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelCrop.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		labelCrop.setBounds(10, 148, 89, 14);
 		jpanel.add(labelCrop);
 		
@@ -167,7 +178,7 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		jpanel.add(ckboxCropVolume);
 		
 		labelLandParcel = new JLabel("Land Parcel");
-		labelLandParcel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelLandParcel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		labelLandParcel.setBounds(10, 277, 89, 14);
 		jpanel.add(labelLandParcel);
 		
@@ -199,10 +210,10 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		chckbxFarmArea.addItemListener(this);
 		jpanel.add(chckbxFarmArea);
 		
-		lblHousehold = new JLabel("Household");
-		lblHousehold.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		lblHousehold.setBounds(220, 45, 65, 14);
-		jpanel.add(lblHousehold);
+		labelHousehold = new JLabel("Household");
+		labelHousehold.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		labelHousehold.setBounds(220, 45, 65, 14);
+		jpanel.add(labelHousehold);
 		
 		ckboxLandOwned = new JCheckBox("Land Owned");
 		ckboxLandOwned.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -286,16 +297,94 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		labelSD.setBounds(10, 407, 150, 23);
 		jpanel.add(labelSD);
 		
+		labelCrop2 = new JLabel("Crop");
+		labelCrop2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		labelCrop2.setBounds(10, 441, 89, 14);
+		jpanel.add(labelCrop2);
+		
+		labelCropType = new JLabel("Crop Type");
+		labelCropType.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelCropType.setBounds(20, 466, 65, 14);
+		jpanel.add(labelCropType);
+		
+		dcbmCropType = new DefaultComboBoxModel<>(controller.getCropTypes());
+		cmboxCropType = new JComboBox<String>(dcbmCropType);
+		cmboxCropType.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		cmboxCropType.setBounds(177, 463, 213, 20);
+		cmboxCropType.setActionCommand("c.croptype");
+		jpanel.add(cmboxCropType);
+		
+		labelHousehold2 = new JLabel("Household");
+		labelHousehold2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		labelHousehold2.setBounds(10, 491, 89, 14);
+		jpanel.add(labelHousehold2);
+		
+		lblCropIndustry = new JLabel("Crop Industry");
+		lblCropIndustry.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		lblCropIndustry.setBounds(20, 516, 75, 14);
+		jpanel.add(lblCropIndustry);
+		
+		String[] yesno = { "", "Yes", "No" };
+		
+		dcbmCropIndustry = new DefaultComboBoxModel<>(yesno);
+		cmboxCropIndustry = new JComboBox<String>(dcbmCropIndustry);
+		cmboxCropIndustry.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		cmboxCropIndustry.setBounds(177, 513, 213, 20);
+		cmboxCropIndustry.setActionCommand("h.cropind");
+		jpanel.add(cmboxCropIndustry);
+		
+		labelHDReason = new JLabel("Harvest Decrease Reason");
+		labelHDReason.setBounds(20, 541, 150, 14);
+		jpanel.add(labelHDReason);
+		
+		dcbmHDReason = new DefaultComboBoxModel<>(controller.getHarvestDecreaseReason());
+		cmboxHDReason = new JComboBox<String>(dcbmHDReason);
+		cmboxHDReason.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		cmboxHDReason.setBounds(177, 537, 213, 20);
+		cmboxHDReason.setActionCommand("h.u_low_harv");
+		cmboxHDReason.addItemListener(this);
+		jpanel.add(cmboxHDReason);
+		
+		labelCropChange = new JLabel("Crop Change");
+		labelCropChange.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelCropChange.setBounds(20, 566, 75, 14);
+		jpanel.add(labelCropChange);
+		
+		dcbmCropChange = new DefaultComboBoxModel<>(yesno);
+		cmboxCropChange = new JComboBox<String>(dcbmCropChange);
+		cmboxCropChange.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		cmboxCropChange.setBounds(177, 563, 213, 20);
+		cmboxCropChange.setActionCommand("h.u_chng_pcrop");
+		jpanel.add(cmboxCropChange);
+		
+		labelCCReason = new JLabel("Crop Change Reason");
+		labelCCReason.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		labelCCReason.setBounds(20, 591, 110, 14);
+		jpanel.add(labelCCReason);
+		
+		dcbmCCReason = new DefaultComboBoxModel<>(controller.getCropChangeReason());
+		cmboxCCReason = new JComboBox<String>(dcbmCCReason);
+		cmboxCCReason.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		cmboxCCReason.setBounds(177, 588, 213, 20);
+		cmboxCCReason.setActionCommand("h.u_chng_pcrop_y");
+		cmboxCCReason.addItemListener(this);
+		jpanel.add(cmboxCCReason);
+		
 		buttonExecute = new JButton("Execute");
 		buttonExecute.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-		buttonExecute.setBounds(10, 635, 89, 25);
+		buttonExecute.setBounds(10, 616, 89, 44);
 		buttonExecute.addActionListener(this);
 		jpanel.add(buttonExecute);
 		
 		labelRowsReturned = new JLabel("Rows returned: ");
 		labelRowsReturned.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-		labelRowsReturned.setBounds(109, 637, 231, 18);
+		labelRowsReturned.setBounds(109, 616, 231, 18);
 		jpanel.add(labelRowsReturned);
+		
+		labelQueryRuntime = new JLabel("Query Runtime: ");
+		labelQueryRuntime.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		labelQueryRuntime.setBounds(109, 642, 231, 18);
+		jpanel.add(labelQueryRuntime);
 		
 		defaultTableModel = new DefaultTableModel();
 		table = new JTable(defaultTableModel);
@@ -378,9 +467,11 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 			updateTableColumnWidth();
 		}
 		
-		labelRowsReturned.setText("Rows returned: " + rows.size());
+		labelRowsReturned.setText("Rows returned: " + rows.size() + " rows");
+		labelQueryRuntime.setText("Query Runtime: " + controller.getQueryTime() / 1000 + " seconds");
+		spinnerColumnWidth.setValue(172);
 	}
-
+	
 	// convert ArrayList<Object[]> to Object[][]
 	private Object[][] arraylistToObjectArray( ArrayList<Object[]> list )
 	{
@@ -393,6 +484,50 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		return newList;
 	}
 	
+	private void getSelectedComboBoxItems()
+	{
+		sdAttributes = new ArrayList<String>(0);
+		
+		if( cmboxCropType.getSelectedIndex() != 0 )
+		{
+			sdAttributes.add(cmboxCropType.getActionCommand() + " = '" + cmboxCropType.getSelectedItem().toString() + "'");
+			checkTable("dim_crop c");
+		}
+		
+		if( cmboxCropIndustry.getSelectedIndex() != 0 )
+		{
+			sdAttributes.add(cmboxCropIndustry.getActionCommand() + " = '" + cmboxCropIndustry.getSelectedItem().toString() + "'");
+			checkTable("dim_household h");
+		}
+		
+		if( cmboxHDReason.getSelectedIndex() != 0 )
+		{
+			sdAttributes.add(cmboxHDReason.getActionCommand() + " = '" + cmboxHDReason.getSelectedItem().toString() + "'");
+			checkTable("dim_household h");
+		}
+		
+		if( cmboxCropChange.getSelectedIndex() != 0 )
+		{
+			sdAttributes.add(cmboxCropChange.getActionCommand() + " = '" + cmboxCropChange.getSelectedItem().toString() + "'");
+			checkTable("dim_household h");
+		}
+		
+		if( cmboxCCReason.getSelectedIndex() != 0 )
+		{
+			sdAttributes.add(cmboxCCReason.getActionCommand() + " = '" + cmboxCCReason.getSelectedItem().toString() + "'");
+			checkTable("dim_household h");
+		}
+	}
+	
+	private void checkTable( String dimTable )
+	{
+		if( !tables.contains(dimTable) )
+		{
+			tables.add(dimTable);
+		}
+	}
+	
+	// ACTION LISTENERS
 	@Override
 	public void actionPerformed(ActionEvent e)
 	{
@@ -403,10 +538,12 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 			//populateTable(controller.getDimensionLandParcel());
 			//populateTable(controller.getDimensionHousehold());
 			//populateTable(controller.getFactTable());
-			populateTable(controller.getData(ruddAttributes, tables));
+			getSelectedComboBoxItems();
+			populateTable(controller.getData(ruddAttributes, sdAttributes, tables));
 		}
 	}
 
+	// CHANGE LISTENER
 	@Override
 	public void stateChanged(ChangeEvent e)
 	{
@@ -427,17 +564,34 @@ public class MainGUI extends JFrame implements ActionListener, ChangeListener, I
 		}
 	}
 	
+	// ITEM LISTENER
 	@Override
 	public void itemStateChanged(ItemEvent e)
 	{
 		// TODO Auto-generated method stub
 		if( e.getStateChange() == ItemEvent.SELECTED )
 		{
-			ruddAttributes.add(((AbstractButton) e.getItem()).getActionCommand());
-			checkboxChecker(e, true);
-			//System.out.println("Added - " + ((AbstractButton) e.getItem()).getActionCommand());
+			if( e.getSource() != cmboxHDReason && e.getSource() != cmboxCCReason )
+			{
+				ruddAttributes.add(((AbstractButton) e.getItem()).getActionCommand());
+				checkboxChecker(e, true);
+				//System.out.println("Added - " + ((AbstractButton) e.getItem()).getActionCommand());
+			}
+			else
+			{
+				if( e.getSource() == cmboxHDReason )
+				{
+					cmboxHDReason.setToolTipText(cmboxHDReason.getSelectedItem().toString());
+				}
+				
+				if( e.getSource() == cmboxCCReason )
+				{
+					cmboxCCReason.setToolTipText(cmboxCCReason.getSelectedItem().toString());
+				}
+			}
+			
 		}
-		else if( e.getStateChange() == ItemEvent.DESELECTED )
+		else if( e.getStateChange() == ItemEvent.DESELECTED && e.getSource() != cmboxHDReason && e.getSource() != cmboxCCReason )
 		{
 			ruddAttributes.remove(((AbstractButton) e.getItem()).getActionCommand());
 			checkboxChecker(e, false);

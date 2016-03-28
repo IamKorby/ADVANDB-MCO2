@@ -34,8 +34,28 @@ public class Controller
 		return databaseManager.getFactTable();
 	}
 	
-	public ResultSet getData(ArrayList<String> attributes, ArrayList<String> tables)
+	public ResultSet getData(ArrayList<String> ruddAttributes, ArrayList<String> sdAttributes, ArrayList<String> tables)
 	{
-		return databaseManager.getData(attributes, tables);
+		return databaseManager.getData(ruddAttributes, sdAttributes, tables);
+	}
+	
+	public String[] getCropTypes()
+	{
+		return databaseManager.getCropTypes();
+	}
+	
+	public String[] getHarvestDecreaseReason()
+	{
+		return databaseManager.getHarvestDecreaseReason();
+	}
+	
+	public String[] getCropChangeReason()
+	{
+		return databaseManager.getCropChangeReason();
+	}
+	
+	public double getQueryTime()
+	{
+		return databaseManager.getQueryTime();
 	}
 }
